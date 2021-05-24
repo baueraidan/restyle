@@ -91,3 +91,87 @@ print('Model successfully loaded!')
 
 image_path = EXPERIMENT_DATA_ARGS[experiment_type]["image_path"]
 original_image = Image.open(image_path).convert("RGB")
+
+if experiment_type == 'cars_encode':
+  original_image = original_image.resize((192, 256))
+else:
+  original_image = original_image.resize((256, 256))
+
+def run_alignment(image_path):
+  import dlib
+  from scripts.align_faces_parallel import align_face
+  if not os.path.exists("shape_predictor_68_face_landmarks.dat"):
+    print('Downloading files for aligning face image...')
+    os.system('wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2')
+    os.system('bzip2 -dk shape_predictor_68_face_landmarks.dat.bz2')
+    print('Done.')
+  predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+  aligned_image = align_face(filepath=image_path, predictor=predictor) 
+  print("Aligned image has shape: {}".format(aligned_image.size))
+  return aligned_image 
+
+if experiment_type in ['ffhq_encode', 'toonify']:
+  input_image = run_alignment(image_path)
+else:
+  input_image = original_image
+
+input_image.resize((256, 256))
+
+
+
+
+
+img_transforms = EXPERIMENT_ARGS['transform']
+transformed_image = img_transforms(input_image)
+
+def get_avg_image(net):
+  avg_image = net(net.latent_avg.unsqueeze(0),
+                input_code=True,
+                randomize_noise=False,
+                return_latents=False,
+                average_code=True)[0]
+  avg_image = avg_image.to('cuda').float().detach()
+  if experiment_type == "cars_encode":
+    avg_image = avg_image[:, 32:224, :]
+  return avg_image
+
+opts.n_iters_per_batch = 5
+opts.resize_outputs = False  # generate outputs at full resolution
+
+from utils.inference_utils import run_on_batch
+
+with torch.no_grad():
+    avg_image = get_avg_image(net)
+    tic = time.time()
+    result_batch, result_latents = run_on_batch(transformed_image.unsqueeze(0).cuda(), net, opts, avg_image)
+    toc = time.time()
+    print('Inference took {:.4f} seconds.'.format(toc - tic))
+
+
+
+
+
+
+if opts.dataset_type == "cars_encode":
+    resize_amount = (256, 192) if opts.resize_outputs else (512, 384)
+else:
+    resize_amount = (256, 256) if opts.resize_outputs else (opts.output_size, opts.output_size)
+
+def get_coupled_results(result_batch, transformed_image):
+  """
+  Visualize output images from left to right (the input image is on the right)
+  """
+  result_tensors = result_batch[0]  # there's one image in our batch
+  result_images = [tensor2im(result_tensors[iter_idx]) for iter_idx in range(opts.n_iters_per_batch)]
+  input_im = tensor2im(transformed_image)
+  res = np.array(result_images[0].resize(resize_amount))
+  for idx, result in enumerate(result_images[1:]):
+    res = np.concatenate([res, np.array(result.resize(resize_amount))], axis=1)
+  res = np.concatenate([res, input_im.resize(resize_amount)], axis=1)
+  res = Image.fromarray(res)
+  return res
+
+res = get_coupled_results(result_batch, transformed_image)
+
+# save image 
+res.save(f'./{experiment_type}_results.jpg')
