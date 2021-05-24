@@ -13,3 +13,5 @@ from models.psp import pSp
 from models.e4e import e4e
 
 print('Hello, world')
+
+experiment_type = 'ffhq_encode' #@param ['ffhq_encode', 'cars_encode', 'church_encode', 'horse_encode', 'afhq_wild_encode', 'toonify']
