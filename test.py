@@ -85,3 +85,9 @@ else:
 net.eval()
 net.cuda()
 print('Model successfully loaded!')
+
+
+
+
+image_path = EXPERIMENT_DATA_ARGS[experiment_type]["image_path"]
+original_image = Image.open(image_path).convert("RGB")
