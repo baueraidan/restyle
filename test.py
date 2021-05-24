@@ -90,6 +90,7 @@ print('Model successfully loaded!')
 
 
 image_path = EXPERIMENT_DATA_ARGS[experiment_type]["image_path"]
+image_path = 'face1.jpg'
 original_image = Image.open(image_path).convert("RGB")
 
 if experiment_type == 'cars_encode':
