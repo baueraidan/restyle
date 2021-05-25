@@ -53,7 +53,7 @@ print('Model successfully loaded!')
 
 
 image_path1 = 'faces/the_weekend.jpg'
-image_path2 = 'faces/margot_robbit.jpg'
+image_path2 = 'faces/margot_robbie.jpg'
 original_image1 = Image.open(image_path1).convert("RGB")
 original_image2 = Image.open(image_path2).convert("RGB")
 
@@ -141,9 +141,19 @@ def get_coupled_results(result_batch, transformed_image):
   res = Image.fromarray(res)
   return res
 
-result_batch = (result_batch1 + result_batch2) * 0.5
+# result_batch = (result_batch1 + result_batch2) * 0.5
+# result_latents = (result_latents1 + result_latents2) * 0.5
+
 result_latents = (result_latents1 + result_latents2) * 0.5
-res = get_coupled_results(result_batch, transformed_image1)
+from models.stylegan2.model import Generator
+generator = Generator(opts.output_size, 512, 8, channel_multiplier=2)
+
+images = generator(result_latents[5 - 1],
+                    input_is_latent=True,
+                    randomize_noise=False,
+                    return_latents=False)
+
+# res = get_coupled_results(result_batch, transformed_image1)
 
 # save image 
 res.save(f'./{experiment_type}_results.jpg')
