@@ -143,12 +143,12 @@ def get_avg_image(net):
 opts.n_iters_per_batch = 5
 opts.resize_outputs = False  # generate outputs at full resolution
 
-from utils.inference_utils import run_on_batch
+from scripts.encoder_bootstrapping_inference import run_on_batch
 
 with torch.no_grad():
     avg_image = get_avg_image(net1)
     tic = time.time()
-    result_batch, result_latents = run_on_batch(transformed_image.unsqueeze(0).cuda(), net1, net2, opts, avg_image)
+    result_batch = run_on_batch(transformed_image.unsqueeze(0).cuda(), net1, net2, opts, avg_image)
     toc = time.time()
     print('Inference took {:.4f} seconds.'.format(toc - tic))
 
