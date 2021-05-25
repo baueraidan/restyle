@@ -8,6 +8,9 @@ from PIL import Image
 import torch
 import torchvision.transforms as transforms
 
+import dlib
+from scripts.align_faces_parallel import align_face
+
 from utils.common import tensor2im
 from models.psp import pSp
 from models.e4e import e4e
@@ -67,29 +70,33 @@ EXPERIMENT_DATA_ARGS = {
 
 EXPERIMENT_ARGS = EXPERIMENT_DATA_ARGS[experiment_type]
 
-# Load pretrained model
-model_path = EXPERIMENT_ARGS['model_path']
-ckpt = torch.load(model_path, map_location='cpu')
 
+ffhq_model_path = EXPERIMENT_DATA_ARGS['ffhq_encode']['model_path']
+toonify_model_path = EXPERIMENT_DATA_ARGS['toonify']['model_path']
+
+# load models 
+ckpt = torch.load(ffhq_model_path, map_location='cpu')
 opts = ckpt['opts']
-pprint.pprint(opts)
-# Update the training options
-opts['checkpoint_path'] = model_path
-
+opts['checkpoint_path'] = ffhq_model_path
 opts = Namespace(**opts)
-if experiment_type == 'horse_encode': 
-  net = e4e(opts)
-else:
-  net = pSp(opts)
-    
-net.eval()
-net.cuda()
-print('Model successfully loaded!')
+net1 = pSp(opts)
+net1.eval()
+net1.cuda()
+print('FFHQ Model successfully loaded!')
+
+ckpt = torch.load(toonify_model_path, map_location='cpu')
+opts = ckpt['opts']
+opts['checkpoint_path'] = toonify_model_path
+opts = Namespace(**opts)
+net2 = pSp(opts)
+net2.eval()
+net2.cuda()
+print('Toonify Model successfully loaded!')
 
 
 
-
-image_path = EXPERIMENT_DATA_ARGS[experiment_type]["image_path"]
+#image_path = EXPERIMENT_DATA_ARGS[experiment_type]["image_path"]
+image_path = 'face1.jpg'
 original_image = Image.open(image_path).convert("RGB")
 
 if experiment_type == 'cars_encode':
@@ -98,8 +105,6 @@ else:
   original_image = original_image.resize((256, 256))
 
 def run_alignment(image_path):
-  import dlib
-  from scripts.align_faces_parallel import align_face
   if not os.path.exists("shape_predictor_68_face_landmarks.dat"):
     print('Downloading files for aligning face image...')
     os.system('wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2')
@@ -141,9 +146,9 @@ opts.resize_outputs = False  # generate outputs at full resolution
 from utils.inference_utils import run_on_batch
 
 with torch.no_grad():
-    avg_image = get_avg_image(net)
+    avg_image = get_avg_image(net1)
     tic = time.time()
-    result_batch, result_latents = run_on_batch(transformed_image.unsqueeze(0).cuda(), net, opts, avg_image)
+    result_batch, result_latents = run_on_batch(transformed_image.unsqueeze(0).cuda(), net1, net2, opts, avg_image)
     toc = time.time()
     print('Inference took {:.4f} seconds.'.format(toc - tic))
 
@@ -174,4 +179,4 @@ def get_coupled_results(result_batch, transformed_image):
 res = get_coupled_results(result_batch, transformed_image)
 
 # save image 
-res.save(f'./{experiment_type}_results.jpg')
+res.save(f'./encoder_bootstrapping_results.jpg')
