@@ -144,14 +144,10 @@ def get_coupled_results(result_batch, transformed_image):
 # result_batch = (result_batch1 + result_batch2) * 0.5
 # result_latents = (result_latents1 + result_latents2) * 0.5
 
-result_latents = (result_latents1 + result_latents2) * 0.5
-from models.stylegan2.model import Generator
-generator = Generator(opts.output_size, 512, 8, channel_multiplier=2)
-
-images = generator(result_latents[5 - 1],
-                    input_is_latent=True,
-                    randomize_noise=False,
-                    return_latents=False)
+result_latents = (np.array(result_latents1[0]) + np.array(result_latents2[0])) * 0.5
+result_latents = torch.from_numpy(result_latents).cuda()
+pprint.pprint(result_latents.shape)
+pprint.pprint(result_latents)
 
 # res = get_coupled_results(result_batch, transformed_image1)
 
