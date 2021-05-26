@@ -52,7 +52,7 @@ print('Model successfully loaded!')
 
 
 
-image_path1 = 'faces/the_weekend.jpg'
+image_path1 = 'faces/margot_robbie.jpg'
 image_path2 = 'faces/margot_robbie.jpg'
 original_image1 = Image.open(image_path1).convert("RGB")
 original_image2 = Image.open(image_path2).convert("RGB")
@@ -134,6 +134,8 @@ def get_coupled_results(result_batch, transformed_image):
   result_tensors = result_batch[0]  # there's one image in our batch
   result_images = [tensor2im(result_tensors[iter_idx]) for iter_idx in range(opts.n_iters_per_batch)]
   input_im = tensor2im(transformed_image)
+  pprint.pprint(transformed_image)
+  pprint.pprint(transformed_image.shape)
   res = np.array(result_images[0].resize(resize_amount))
   for idx, result in enumerate(result_images[1:]):
     res = np.concatenate([res, np.array(result.resize(resize_amount))], axis=1)
@@ -141,13 +143,38 @@ def get_coupled_results(result_batch, transformed_image):
   res = Image.fromarray(res)
   return res
 
+res = get_coupled_results(result_batch1, transformed_image1)
+res.save('./test_many.jpg')
 
-test_image = net(result_latents1[0].unsqueeze(0),
+lat = result_latents1[0][-1]
+pprint.pprint(lat)
+pprint.pprint(lat.shape)
+pprint.pprint(torch.from_numpy(lat))
+t = torch.from_numpy(lat.copy()).cuda()
+test_image = net(t.unsqueeze(0),
               input_code=True,
               randomize_noise=False,
-              return_latents=False,
-              average_code=True)[0]
-test_image = test_image.to('cuda').float().detach()
+              resize=False,
+              return_latents=False) #,
+              #average_code=True) #[0]
+#pprint.pprint(test_image)
+#pprint.pprint(test_image.shape)
+test_image = test_image.to('cuda').float().detach()[0]
+input_im = tensor2im(test_image)
+print('Input_im is')
+pprint.pprint(input_im)
+#res = Image.fromarray(input_im)
+#pprint.pprint(input_im)
+input_im.save('./test.jpg')
+
+
+#test_image = test_image.to('cuda').float().detach().cpu().numpy()
+#print('Test image is:')
+#pprint.pprint(test_image.shape)
+#pprint.pprint(test_image)
+#res = Image.fromarray(test_image)
+
+#test_image = test_image.to('cuda').float().detach()
 
 # save image 
 #res.save(f'./{experiment_type}_results.jpg')
