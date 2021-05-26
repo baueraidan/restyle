@@ -111,6 +111,8 @@ from utils.inference_utils import run_on_batch
 
 with torch.no_grad():
   avg_image = get_avg_image(net)
+  print('Average image:')
+  pprint.pprint(avg_image)
   tic = time.time()
   result_batch1, result_latents1 = run_on_batch(transformed_image1.unsqueeze(0).cuda(), net, opts, avg_image)
   result_batch2, result_latents2 = run_on_batch(transformed_image2.unsqueeze(0).cuda(), net, opts, avg_image)
@@ -141,46 +143,6 @@ def get_coupled_results(result_batch, transformed_image):
   res = Image.fromarray(res)
   return res
 
-print('Result 1:')
-#pprint.pprint(result_latents1[0].shape)
-res1 = np.array(result_latents1[0])
-pprint.pprint(res1)
-
-print('Result 2:')
-#pprint.pprint(result_latents1[0].shape)
-res2 = np.array(result_latents2[0])
-pprint.pprint(res2)
-
-mean = (res1 + res2) * 0.5
-print('Mean:')
-pprint.pprint(mean.shape)
-pprint.pprint(mean)
-
-print('Codes:')
-codes = torch.from_numpy(mean[-1].reshape((1, 18, 512))).cuda()
-pprint.pprint(codes.shape)
-pprint.pprint([codes])
-
-from models.stylegan2.model import Generator
-generator = Generator(opts.output_size, 512, 8, channel_multiplier=2)
-images, result_latent = generator([codes],
-                              input_is_latent=True,
-                              randomize_noise=False,
-                              return_latents=True)
-
-#result_lat = (np.array(result_latents1) + np.array(result_latents2)) * 0.5
-#result_lat_tensor = 
-
-# result_batch = (result_batch1 + result_batch2) * 0.5
-# result_latents = (result_latents1 + result_latents2) * 0.5
-
-# result_latents = (np.array(result_latents1[0]) + np.array(result_latents2[0])) * 0.5
-# result_latents = result_latents[0].reshape((1, 18, 512))
-# result_latents = torch.from_numpy(result_latents).cuda()
-# pprint.pprint(result_latents.shape)
-# pprint.pprint(result_latents)
-
-# res = get_coupled_results(result_batch, transformed_image1)
 
 # save image 
-res.save(f'./{experiment_type}_results.jpg')
+#res.save(f'./{experiment_type}_results.jpg')
