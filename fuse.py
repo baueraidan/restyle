@@ -142,17 +142,24 @@ def get_coupled_results(result_batch, transformed_image):
   return res
 
 print('Result 1:')
-pprint.pprint(result_latents1[0].shape)
-pprint.pprint(result_latents1[0])
+#pprint.pprint(result_latents1[0].shape)
+res1 = np.array(result_latents1[0])
+pprint.pprint(res1)
 
 print('Result 2:')
-pprint.pprint(result_latents1[0].shape)
-pprint.pprint(result_latents1[0])
+#pprint.pprint(result_latents1[0].shape)
+res2 = np.array(result_latents2[0])
+pprint.pprint(res2)
 
-mean = torch.mean(torch.stack([result_latents1[0], result_latents2[0]]))
+mean = (res1 + res2) * 0.5
 print('Mean:')
 pprint.pprint(mean.shape)
 pprint.pprint(mean)
+
+print('Codes:')
+codes = mean[-1].reshape((1, 18, 512)).cuda()
+pprint.pprint(codes.shape)
+pprint.pprint([codes])
 
 #result_lat = (np.array(result_latents1) + np.array(result_latents2)) * 0.5
 #result_lat_tensor = 
