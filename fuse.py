@@ -157,9 +157,16 @@ pprint.pprint(mean.shape)
 pprint.pprint(mean)
 
 print('Codes:')
-codes = mean[-1].reshape((1, 18, 512)).cuda()
+codes = torch.from_numpy(mean[-1].reshape((1, 18, 512))).cuda()
 pprint.pprint(codes.shape)
 pprint.pprint([codes])
+
+from models.stylegan2.model import Generator
+generator = Generator(opts.output_size, 512, 8, channel_multiplier=2)
+images, result_latent = generator([codes],
+                              input_is_latent=True,
+                              randomize_noise=False,
+                              return_latents=True)
 
 #result_lat = (np.array(result_latents1) + np.array(result_latents2)) * 0.5
 #result_lat_tensor = 
