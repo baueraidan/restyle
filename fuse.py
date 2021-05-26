@@ -111,8 +111,6 @@ from utils.inference_utils import run_on_batch
 
 with torch.no_grad():
   avg_image = get_avg_image(net)
-  print('Average image:')
-  pprint.pprint(avg_image)
   tic = time.time()
   result_batch1, result_latents1 = run_on_batch(transformed_image1.unsqueeze(0).cuda(), net, opts, avg_image)
   result_batch2, result_latents2 = run_on_batch(transformed_image2.unsqueeze(0).cuda(), net, opts, avg_image)
@@ -143,6 +141,13 @@ def get_coupled_results(result_batch, transformed_image):
   res = Image.fromarray(res)
   return res
 
+
+test_image = net(result_latents1[0].unsqueeze(0),
+              input_code=True,
+              randomize_noise=False,
+              return_latents=False,
+              average_code=True)[0]
+test_image = test_image.to('cuda').float().detach()
 
 # save image 
 #res.save(f'./{experiment_type}_results.jpg')
