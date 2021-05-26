@@ -4,6 +4,7 @@ This file defines the core research contribution
 import math
 import torch
 from torch import nn
+import pprint
 
 from models.stylegan2.model import Generator
 from configs.paths_config import model_paths
@@ -81,6 +82,10 @@ class pSp(nn.Module):
         else:
             input_is_latent = not input_code
 
+        pprint.pprint(codes.shape)
+        pprint.pprint('Codes are', [codes])
+        pprint.pprint(input_is_latent, randomize_noise, return_latents)
+        pprint.pprint(self.decoder)
         images, result_latent = self.decoder([codes],
                                              input_is_latent=input_is_latent,
                                              randomize_noise=randomize_noise,

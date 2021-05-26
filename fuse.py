@@ -145,6 +145,7 @@ def get_coupled_results(result_batch, transformed_image):
 # result_latents = (result_latents1 + result_latents2) * 0.5
 
 result_latents = (np.array(result_latents1[0]) + np.array(result_latents2[0])) * 0.5
+result_latents = result_latents[0].reshape((1, 18, 512))
 result_latents = torch.from_numpy(result_latents).cuda()
 pprint.pprint(result_latents.shape)
 pprint.pprint(result_latents)
