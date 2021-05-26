@@ -142,14 +142,14 @@ def get_coupled_results(result_batch, transformed_image):
   return res
 
 print('Result 1:')
-pprint.pprint(result_latents1.shape)
-pprint.pprint(result_latents1)
+pprint.pprint(result_latents1[0].shape)
+pprint.pprint(result_latents1[0])
 
 print('Result 2:')
-pprint.pprint(result_latents1.shape)
-pprint.pprint(result_latents1)
+pprint.pprint(result_latents1[0].shape)
+pprint.pprint(result_latents1[0])
 
-mean = torch.mean(torch.stack([result_latents1, result_latents2]))
+mean = torch.mean(torch.stack([result_latents1[0], result_latents2[0]]))
 print('Mean:')
 pprint.pprint(mean.shape)
 pprint.pprint(mean)

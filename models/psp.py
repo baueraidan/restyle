@@ -83,8 +83,8 @@ class pSp(nn.Module):
             input_is_latent = not input_code
 
         pprint.pprint(codes.shape)
-        pprint.pprint('Codes are', [codes])
-        pprint.pprint(input_is_latent, randomize_noise, return_latents)
+        pprint.pprint([codes])
+        print(input_is_latent, randomize_noise, return_latents)
         pprint.pprint(self.decoder)
         images, result_latent = self.decoder([codes],
                                              input_is_latent=input_is_latent,
